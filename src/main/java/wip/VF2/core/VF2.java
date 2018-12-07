@@ -15,7 +15,7 @@ import wip.VF2.graph.Node;
  * @author luo123n
  */
 public class VF2 {
-	
+	static int frequencyCount;
 	/**
 	 * Find matches given a query graph and a set of target graphs
 	 * @param graphSet		Target graph set
@@ -25,12 +25,11 @@ public class VF2 {
 	public ArrayList<State> matchGraphSetWithQuery(ArrayList<Graph> graphSet, Graph queryGraph){
 		ArrayList<State> stateSet = new ArrayList<State>();
 		for (Graph targetGraph : graphSet){
-			State resState = matchGraphPairNew(targetGraph, queryGraph);
+			State resState = matchGraphPair(targetGraph, queryGraph);
 			if (resState.matched){
 				stateSet.add(resState);
 			}
 		}
-		
 		return stateSet;
 	}
 	
@@ -43,77 +42,19 @@ public class VF2 {
 	 */
 	public State matchGraphPair(Graph targetGraph, Graph queryGraph) {
 		State state = new State(targetGraph, queryGraph);
-		int frequentCount = 0;
 		
-		matchRecursive(state, targetGraph, queryGraph, frequentCount);
+		matchRecursiveNew(state, targetGraph, queryGraph);
+		System.out.println();
+		System.out.println("******* frequencyCount: " + frequencyCount);
 		return state;
 	}
 	
-	/**
-	 * Recursively figure out if the target graph contains query graph
-	 * @param state			VF2 State
-	 * @param targetGraph	Big Graph
-	 * @param queryGraph	Small Graph
-	 * @return	Match or not
+	/*
+	 * count the frequency of patterns
+	 * 
 	 */
-	private boolean matchRecursive(State state, Graph targetGraph, Graph queryGraph, int frequentCount){
-			Map<Integer,ArrayList<Pair<Integer,Integer>>> candidatePairMap = new HashMap<Integer,ArrayList<Pair<Integer,Integer>>>();
-			int pairsCount = 0;
-			ArrayList<Pair<Integer,Integer>> usefullPairsList = new ArrayList<Pair<Integer,Integer>>();
-			ArrayList<Pair<Integer,Integer>> candidatePairs = genCandidatePairs(state, targetGraph, queryGraph);
-			int queryNodeIndex = candidatePairs.get(0).getValue();
-			for (Pair<Integer, Integer> entry : candidatePairs){
-				if (checkFeasibility(state, entry.getKey(), entry.getValue())) {
-					usefullPairsList.add(entry);
-					candidatePairMap.put(pairsCount, usefullPairsList);
-					state.extendMatchFirst(entry.getKey(), entry.getValue()); // extend mapping
-					matchRecursiveSmall(state, targetGraph, queryGraph, pairsCount, candidatePairMap);
-				}
-			}
-			State state1 = new State(targetGraph, queryGraph);
-			boolean b = matchRecursived(state1,candidatePairMap, queryGraph, targetGraph);
-			
-		return false;
-	}
-
-	public void matchRecursiveSmall(State state, Graph targetGraph, Graph queryGraph, int pairsCount,
-			Map<Integer, ArrayList<Pair<Integer, Integer>>> candidatePairMap) {
-		if (candidatePairMap.size() == queryGraph.nodes.size()) { // Found a match
-			state.matched = true;
-			return;
-		} else {
-			ArrayList<Pair<Integer, Integer>> usefullPairsList = new ArrayList<Pair<Integer, Integer>>();
-			ArrayList<Pair<Integer, Integer>> candidatePairs = genCandidatePairs(state, targetGraph, queryGraph);
-			pairsCount++;
-			for (Pair<Integer, Integer> entry : candidatePairs) {
-				if (checkFeasibility(state, entry.getKey(), entry.getValue())) {
-					usefullPairsList.add(entry);
-					state.extendMatchFirst(entry.getKey(), entry.getValue()); // extend mapping
-				}
-			}
-			candidatePairMap.put(pairsCount, usefullPairsList);
-			matchRecursiveSmall(state, targetGraph, queryGraph, pairsCount, candidatePairMap);
-		}
-	}
-	public boolean matchRecursived(State state, Map<Integer, ArrayList<Pair<Integer, Integer>>> candidatePairMap, Graph targetGraph, Graph queryGraph) {
-
-		for(int i=0;i<candidatePairMap.size();i++) {
-			for(int j=0;j<candidatePairMap.get(i).size();j++) {
-				if(checkFeasibility(state, candidatePairMap.get(i).get(j).getKey(), candidatePairMap.get(i).get(j).getValue())) {
-					state.extendMatch(candidatePairMap.get(i).get(j).getKey(), candidatePairMap.get(i).get(j).getValue()); // extend mapping
-					
-					
-					ArrayList<Pair<Integer,Integer>> candidatePairs = genCandidatePairs(state, targetGraph, queryGraph);
-					if(state.depth == queryGraph.nodes.size()) {
-						System.out.println("New found!");
-						state.matched = true;
-						return true;
-					}
-				}
-				state.backtrack(candidatePairMap.get(i).get(j).getKey(), candidatePairMap.get(i).get(j).getValue()); // remove the match added before
-			}
-		}
-		return false;
+	public void countFrequency() {
+		frequencyCount ++;
 	}
 	
 	/**
@@ -143,63 +84,25 @@ public class VF2 {
 		return false;
 	}
 	
-	public State matchGraphPairNew(Graph targetGraph, Graph queryGraph) {
-		State stateOld = new State(targetGraph, queryGraph);
-		int frequentCount = 0;
-		
-		matchRecursiveState(stateOld, targetGraph, queryGraph);
-		return stateOld;
-	}
-	
-	private boolean matchRecursiveState(State state, Graph targetGraph, Graph queryGraph){
+	private void matchRecursiveNew(State state, Graph targetGraph, Graph queryGraph){
 		
 		if (state.depth == queryGraph.nodes.size()){	// Found a match
 			state.matched = true;
-			return true;
+			countFrequency();
+			System.out.println("-------- Match a pattern! --------");
+			
 		} else {	// Extend the state
-			ArrayList<Pair<Integer,Integer>> candidatePairs = genCandidatePairs(state, targetGraph, queryGraph);
-			for (Pair<Integer, Integer> entry : candidatePairs){//(2,1) (4,1)
-				State state0 = new State(targetGraph, queryGraph);
-				state0 = state;
-				if (checkFeasibility(state0, entry.getKey(), entry.getValue())){
-					state0.extendMatch(entry.getKey(), entry.getValue()); // extend mapping
-					if (matchRecursiveState(state0, targetGraph, queryGraph)){	// Found a match
-						System.out.println("Found a match!");
-//						return true;
-						
-					}
-					state0.backtrack(entry.getKey(), entry.getValue()); // remove the match added before
-				}
-			}
-		}
-		return false;
-	}
-	
-private boolean matchRecursiveAdd(State state, Graph targetGraph, Graph queryGraph, int pairsCount, Map<Integer,ArrayList<Pair<Integer,Integer>>> candidatePairMap){
-		
-		if (state.depth == queryGraph.nodes.size()){	// Found a match
-			state.matched = true;
-			return true;
-		} else {	// Extend the state
-			ArrayList<Pair<Integer,Integer>> usefullPairsList = new ArrayList<Pair<Integer,Integer>>();
 			ArrayList<Pair<Integer,Integer>> candidatePairs = genCandidatePairs(state, targetGraph, queryGraph);
 			for (Pair<Integer, Integer> entry : candidatePairs){
-				if (checkFeasibility(state, entry.getKey(), entry.getValue())) {
-					pairsCount ++;
+				if (checkFeasibility(state, entry.getKey(), entry.getValue())){
 					state.extendMatch(entry.getKey(), entry.getValue()); // extend mapping
-					usefullPairsList.add(entry);
-					candidatePairMap.put(pairsCount, usefullPairsList);
-					for(int i = 0;i<candidatePairMap.size();i++) {
-						matchRecursiveAdd(state, targetGraph, queryGraph, pairsCount, candidatePairMap);
-					}
-
+					matchRecursiveNew(state, targetGraph, queryGraph);// Found a match
 					state.backtrack(entry.getKey(), entry.getValue()); // remove the match added before
 				}
 			}
 		}
-		return false;
 	}
-		
+	
 	/**
 	 * Generate all candidate pairs given current state
 	 * @param state			VF2 State
@@ -306,9 +209,9 @@ private boolean matchRecursiveAdd(State state, Graph targetGraph, Graph queryGra
 		}
 
 		// New Rule
-		if (!checkNew(state, targetNodeIndex, queryNodeIndex)){
-			return false;
-		}
+//		if (!checkNew(state, targetNodeIndex, queryNodeIndex)){
+//			return false;
+//		}
 				
 		return true; 
 	}
@@ -488,7 +391,7 @@ private boolean matchRecursiveAdd(State state, Graph targetGraph, Graph queryGra
 		}
 		for (Edge e : queryNode.outEdges){
 			if (state.inN2Tilde(e.target.id)){
-				queryPredCnt++;
+				querySucCnt++;
 			}
 		}
 		if (targetPredCnt < queryPredCnt || targetSucCnt < querySucCnt){

@@ -18,8 +18,8 @@ public class App {
 		
 //		Path graphPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "mygraphdb.data");
 //		Path queryPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "Q20.my");
-		Path graphPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "testGRAMI.lg");
-		Path queryPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "testGRAMIsmall01.lg");
+		Path graphPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "testSummaries.lg");
+		Path queryPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "testSummariessmall.lg");
 		Path outPath = Paths.get("D:/projects/java_workspace/VF2-master/VF2-master/data/graphDB/", "res_Q20.my");
 		
 		if (args.length == 0) {

@@ -127,6 +127,8 @@ public class State {
 		
 		core_1[targetIndex] = queryIndex;
 		core_2[queryIndex] = targetIndex;
+//		core_1[targetIndex] = targetIndex;
+//		core_2[queryIndex] = queryIndex;
 		unmapped1.remove(targetIndex);
 		unmapped2.remove(queryIndex);
 		T1in.remove(targetIndex);
